@@ -33,7 +33,8 @@ class DroneController extends Controller
     public function insert(Request $request)
     {
         $this->validate($request, $this->rules);
-        return $this->drone::create($request->all());
+        $this->drone::create($request->all());
+        return 'Drone criado com sucesso!';
     }
 
     public function update(Request $request, $id)
