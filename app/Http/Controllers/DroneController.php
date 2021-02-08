@@ -42,14 +42,27 @@ class DroneController extends Controller
 
         $drone = $this->drone->find($id);
 
-        return $drone->update($request->all());
+        if($drone)
+        {
+            $drone->update($request->all());
+            return 'Atualizado com sucesso!';
+        }else{
+            return 'Não foi possível atualizar. Drone não encontrado!';
+        }
     }
 
     public function delete(Request $request, $id)
     {
         $drone = $this->drone->find($id);
 
-        return $drone->delete();
+        if($drone)
+        {
+            $drone->delete();
+            return 'Deletado com sucesso!';
+        }else{
+            return 'Não foi possível deletar. Drone não encontrado!';
+
+        }
     }
 
 }
