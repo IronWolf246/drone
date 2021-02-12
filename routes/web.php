@@ -22,3 +22,6 @@ $router->get('/drones', 'DroneController@list');
 $router->post('/drones', 'DroneController@insert');
 $router->put('/drones/{id}', 'DroneController@update');
 $router->delete('/drones/{id}', 'DroneController@delete');
+$router->get('/drones/paginate/{limit}', 'DroneController@paginate');
+$router->get('/drones/sort/{field}/{order}', 'DroneController@sort');
+$router->get('/drones/filter/{name}/{status}', 'DroneController@filter');

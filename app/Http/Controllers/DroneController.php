@@ -66,4 +66,21 @@ class DroneController extends Controller
         }
     }
 
+    public function paginate($limit)
+    {
+        return $this->drone::paginate($limit);
+    }
+
+    public function sort($field, $order)
+    { 
+        return $this->drone::orderBy($field, $order)->get();
+    }
+
+    public function filter($name, $status)
+    { 
+        return $this->drone::where('name', 'like', '%'.$name.'%')
+            ->where('status', $status)
+            ->get();
+    }
+
 }
