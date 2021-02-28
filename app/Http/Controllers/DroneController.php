@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Drone;
 use Illuminate\Http\Request;
+use App\ResponseReturn\ApiReturn;
 
 
 class DroneController extends Controller
@@ -27,28 +28,84 @@ class DroneController extends Controller
 
     public function list()
     {
-        return $this->drone::all();
+        // Sort
+        if(request('_sort')){
+            $field = request('_sort');
+            $order = request('_order');
+            try{
+                $data = $this->drone::orderBy($field, $order)->get();
+                return ApiReturn::defaultReturn(false, null, $data, 200);
+            }catch(\Exception $e){
+                return ApiReturn::defaultReturn(true, $e->getMessage(), null, 400);
+            }
+        }
+        // Filter
+        else if(request('name')){
+            $name = request('name');
+            $status = request('status');
+            try{
+                $data = $this->drone::where('name', 'like', '%'.$name.'%')
+                ->where('status', $status)
+                ->get();
+                if(!$data->isEmpty()){
+                    return ApiReturn::defaultReturn(false, null, $data, 200);
+                }else{
+                    return ApiReturn::defaultReturn(false, 'Não foi possível encontrar nenhum drone com essas informações', null, 200);
+                }
+            }catch(\Exception $e){
+                return ApiReturn::defaultReturn(true, $e->getMessage(), null, 400);
+            }
+        }
+        // Paginate
+        else if(request('_page')){
+            $page = request('_page');
+            $limit = request('_limit');
+            try{
+                $data = $this->drone::paginate($limit, ['*'], 'page', $page);
+                return ApiReturn::defaultReturn(false, null, $data, 200);
+            }catch(\Exception $e){
+                return ApiReturn::defaultReturn(true, $e->getMessage(), null, 400);
+            }
+        }
+
+        // List All
+        try{
+            $data = $this->drone::all();
+            return ApiReturn::defaultReturn(false, null, $data, 200);
+        }catch(\Exception $e){
+            return ApiReturn::defaultReturn(true, $e->getMessage(), null, 400);
+        }
     }
 
     public function insert(Request $request)
     {
-        $this->validate($request, $this->rules);
-        $this->drone::create($request->all());
-        return 'Drone criado com sucesso!';
+        $validator = $this->validate($request, $this->rules);
+        
+        try{
+            $this->drone::create($request->all());
+            return ApiReturn::defaultReturn(false, 'Drone criado com sucesso!', null, 201);
+        }catch(\Exception $e){
+            return ApiReturn::defaultReturn(true, $e->getMessage(), null, 400);
+        }
     }
 
     public function update(Request $request, $id)
     {
-        $this->validate($request, $this->rules);
+        $validator = $this->validate($request, $this->rules);
 
         $drone = $this->drone->find($id);
 
         if($drone)
-        {
-            $drone->update($request->all());
-            return 'Atualizado com sucesso!';
+        {  
+            try{
+                $drone->update($request->all());
+                return ApiReturn::defaultReturn(false, 'Atualizado com sucesso!', null, 200);
+            }catch(\Exception $e){
+                return ApiReturn::defaultReturn(true, $e->getMessage(), null, 400);
+            }
+            
         }else{
-            return 'Não foi possível atualizar. Drone não encontrado!';
+            return ApiReturn::defaultReturn(true, 'Não foi possível atualizar. Drone não encontrado!', null, 404);
         }
     }
 
@@ -58,11 +115,15 @@ class DroneController extends Controller
 
         if($drone)
         {
-            $drone->delete();
-            return 'Deletado com sucesso!';
-        }else{
-            return 'Não foi possível deletar. Drone não encontrado!';
+            try{
+                $drone->delete();
+                return ApiReturn::defaultReturn(false, 'Deletado com sucesso!', null, 200);
+            }catch(\Exception $e){
+                return ApiReturn::defaultReturn(true, $e->getMessage(), null, 400);
+            }
 
+        }else{
+            return ApiReturn::defaultReturn(true, 'Não foi possível deletar. Drone não encontrado!', null, 404);
         }
     }
 
@@ -72,15 +133,29 @@ class DroneController extends Controller
     }
 
     public function sort($field, $order)
-    { 
-        return $this->drone::orderBy($field, $order)->get();
+    {
+        try{
+            $data = $this->drone::orderBy($field, $order)->get();
+            return ApiReturn::defaultReturn(false, null, $data, 200);
+        }catch(\Exception $e){
+            return ApiReturn::defaultReturn(true, $e->getMessage(), null, 400);
+        }
     }
 
     public function filter($name, $status)
-    { 
-        return $this->drone::where('name', 'like', '%'.$name.'%')
+    {
+        try{
+            $data = $this->drone::where('name', 'like', '%'.$name.'%')
             ->where('status', $status)
             ->get();
+            if(!$data->isEmpty()){
+                return ApiReturn::defaultReturn(false, null, $data, 200);
+            }else{
+                return ApiReturn::defaultReturn(false, 'Não foi possível encontrar nenhum drone com essas informações', $data, 200);
+            }
+        }catch(\Exception $e){
+            return ApiReturn::defaultReturn(true, $e->getMessage(), null, 400);
+        }
     }
 
 }
